@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cajee Botes O&P — Patient Dashboard</title>
+<style>
+:root {
+  --primary: #7C3AED;
+  --primary-dark: #5B21B6;
+  --primary-mid: #8B5CF6;
+  --primary-light: #C4B5FD;
+  --lilac: #DDD6FE;
+  --lilac-pale: #F5F3FF;
+  --lilac-mid: #EDE9FE;
+  --text: #1E1B4B;
+  --text-light: #6B7280;
+  --border: #E5E7EB;
+  --green: #059669;
+  --green-pale: #D1FAE5;
+  --amber: #D97706;
+  --amber-pale: #FEF3C7;
+  --red: #DC2626;
+  --red-pale: #FEE2E2;
+  --blue: #0284C7;
+  --blue-pale: #E0F2FE;
+  --grey: #6B7280;
+  --grey-pale: #F3F4F6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(160deg, #F5F3FF 0%, #EDE9FE 60%, #DDD6FE 100%);
+  min-height: 100vh;
+  color: var(--text);
+}
+
+/* ─── HEADER ─── */
+.header {
+  background: linear-gradient(135deg, #5B21B6 0%, #7C3AED 50%, #8B5CF6 100%);
+  color: white; padding: 0 20px; height: 68px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 4px 24px rgba(91,33,182,0.35);
+  position: sticky; top: 0; z-index: 200;
+}
+.header-brand { display: flex; align-items: center; gap: 12px; }
+.header-logo {
+  width: 44px; height: 44px; background: rgba(255,255,255,0.18);
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 24px; border: 1.5px solid rgba(255,255,255,0.3); flex-shrink: 0;
+}
+.header-title h1 { font-size: 15px; font-weight: 700; }
+.header-title p  { font-size: 11px; opacity: 0.72; margin-top: 1px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header-date { font-size: 12px; opacity: 0.82; text-align: right; line-height: 1.5; }
+.btn-new {
+  background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.4);
+  color: white; padding: 8px 16px; border-radius: 9px; cursor: pointer;
+  font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;
+  transition: all .18s; white-space: nowrap;
+}
+.btn-new:hover { background: rgba(255,255,255,0.28); transform: translateY(-1px); }
+
+/* ─── NAV ─── */
+.nav {
+  background: white; padding: 0 20px; display: flex;
+  border-bottom: 1.5px solid var(--border);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow-x: auto;
+}
+.nav::-webkit-scrollbar { display: none; }
+.tab {
+  padding: 13px 16px; cursor: pointer; font-size: 13px; font-weight: 500;
+  color: var(--text-light); border-bottom: 2.5px solid transparent;
+  transition: all .18s; display: flex; align-items: center; gap: 6px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.tab:hover { color: var(--primary); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+.badge {
+  background: var(--primary); color: white; border-radius: 20px;
+  padding: 1px 7px; font-size: 11px; font-weight: 700; min-width: 20px; text-align: center;
+}
+
+/* ─── MAIN ─── */
+.main { padding: 16px 20px; max-width: 1560px; margin: 0 auto; }
+
+/* ─── STATS ─── */
+.stats { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.stat {
+  background: white; border-radius: 14px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 2px 10px rgba(124,58,237,0.08); flex: 1; min-width: 120px;
+}
+.stat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.stat-val  { font-size: 24px; font-weight: 800; line-height: 1; }
+.stat-lbl  { font-size: 11px; color: var(--text-light); margin-top: 1px; }
+
+/* ─── BOARD ─── */
+.board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; align-items: start; }
+@media(max-width:1280px) { .board { grid-template-columns: repeat(3,1fr); } }
+@media(max-width:860px)  { .board { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:560px)  { .board { grid-template-columns: 1fr; } .main { padding: 10px; } }
+
+.col { background: white; border-radius: 16px; padding: 13px; box-shadow: 0 2px 12px rgba(124,58,237,0.07); }
+.col-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--border);
+}
+.col-title { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; }
+.dot-appt { background: var(--primary); }
+.dot-seen { background: var(--green); }
+.dot-fu   { background: var(--amber); }
+.dot-pay  { background: var(--blue); }
+.dot-done { background: var(--grey); }
+.col-cnt { background: var(--lilac); color: var(--primary-dark); border-radius: 12px; padding: 2px 9px; font-size: 12px; font-weight: 700; }
+
+/* ─── DRAG & DROP ─── */
+.col-cards {
+  display: flex; flex-direction: column; gap: 8px; min-height: 80px;
+  border-radius: 8px; transition: background .15s, outline .15s;
+  padding: 2px;
+}
+.col-cards.drag-over {
+  background: rgba(124,58,237,0.05);
+  outline: 2px dashed var(--primary-light);
+  outline-offset: 2px;
+}
+.pcard {
+  background: white; border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 12px 12px 12px 16px; cursor: grab; transition: all .18s; position: relative;
+  user-select: none;
+}
+.pcard:active { cursor: grabbing; }
+.pcard.is-dragging { opacity: 0.35; transform: rotate(1.5deg) scale(0.98); }
+.pcard::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 4px; border-radius: 12px 0 0 12px;
+}
+.col-appt .pcard::before { background: var(--primary); }
+.col-seen .pcard::before { background: var(--green); }
+.col-fu   .pcard::before { background: var(--amber); }
+.col-pay  .pcard::before { background: var(--blue); }
+.col-done .pcard::before { background: var(--grey); }
+.pcard:hover { border-color: var(--primary-light); box-shadow: 0 4px 18px rgba(124,58,237,0.15); transform: translateY(-2px); }
+.pcard.is-dragging:hover { transform: rotate(1.5deg) scale(0.98); }
+
+.drag-hint {
+  font-size: 10px; color: var(--text-light); text-align: center;
+  padding: 6px 0 2px; opacity: .6; letter-spacing: .3px;
+}
+
+.pc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 7px; }
+.pc-left { display: flex; align-items: center; gap: 8px; }
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 100%);
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.pc-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.pc-svc  { display: inline-block; margin-top: 2px; font-size: 10px; background: var(--lilac-pale); color: var(--primary-dark); padding: 1px 5px; border-radius: 4px; font-weight: 600; }
+.pc-tags { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; flex-shrink: 0; }
+.tag { font-size: 10px; font-weight: 700; border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
+.tag-bday    { background: var(--red-pale);   color: var(--red); }
+.tag-over    { background: var(--amber-pale);  color: var(--amber); }
+.tag-today   { background: var(--green-pale);  color: var(--green); }
+.tag-paid    { background: var(--green-pale);  color: var(--green); }
+.tag-pay-pend{ background: var(--blue-pale);   color: var(--blue); }
+.tag-rejected{ background: var(--red-pale);    color: var(--red); }
+.tag-medaid  { background: var(--blue-pale);   color: var(--blue); }
+.tag-private { background: var(--grey-pale);   color: var(--grey); }
+
+.pc-meta { display: flex; flex-direction: column; gap: 3px; margin-top: 3px; }
+.pc-meta-row { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-light); }
+
+/* ─── SCHEDULE ─── */
+.sch-title { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.sch-sub   { font-size: 13px; color: var(--text-light); margin-bottom: 20px; }
+.timeslot  { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 6px; }
+.t-lbl { width: 58px; font-size: 12px; color: var(--text-light); font-weight: 600; padding-top: 13px; text-align: right; flex-shrink: 0; }
+.t-line { flex: 1; border-left: 2px solid var(--lilac); padding-left: 14px; }
+.t-line .pcard { margin-bottom: 8px; }
+
+/* ─── COMPLETED ─── */
+.arch-notice {
+  background: linear-gradient(135deg, var(--lilac-mid), var(--lilac));
+  border: 1px solid var(--primary-light); border-radius: 10px; padding: 11px 14px;
+  font-size: 12px; color: var(--primary-dark); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.arch-notice select { margin-left: auto; width: auto; padding: 4px 8px; font-size: 12px; }
+.done-search { width: 100%; max-width: 380px; padding: 9px 14px; border: 1.5px solid var(--border); border-radius: 9px; font-size: 13px; outline: none; margin-bottom: 16px; transition: border-color .18s; }
+.done-search:focus { border-color: var(--primary); }
+.done-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+
+/* ─── EMPTY ─── */
+.empty { text-align: center; padding: 36px 16px; color: var(--text-light); }
+.empty .ei { font-size: 38px; margin-bottom: 10px; opacity: .4; }
+.empty p { font-size: 13px; }
+
+/* ─── MODAL ─── */
+.overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.48);
+  z-index: 1000; align-items: center; justify-content: center; padding: 16px;
+  backdrop-filter: blur(5px);
+}
+.overlay.open { display: flex; }
+.modal { background: white; border-radius: 20px; width: 100%; max-width: 580px; max-height: 92vh; overflow-y: auto; box-shadow: 0 30px 70px rgba(0,0,0,0.22); }
+.modal-hd { padding: 20px 22px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; z-index: 1; border-radius: 20px 20px 0 0; }
+.modal-hd h2 { font-size: 18px; font-weight: 700; color: var(--text); }
+.modal-x { width: 32px; height: 32px; border-radius: 8px; border: none; background: var(--lilac-pale); cursor: pointer; font-size: 17px; display: flex; align-items: center; justify-content: center; color: var(--text-light); transition: background .15s; }
+.modal-x:hover { background: var(--lilac); }
+.modal-body { padding: 16px 22px; }
+.modal-ft { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 9px; justify-content: flex-end; position: sticky; bottom: 0; background: white; border-radius: 0 0 20px 20px; }
+
+/* ─── STATUS FLOW ─── */
+.flow-box { background: var(--lilac-pale); border-radius: 12px; padding: 13px; margin-bottom: 14px; }
+.flow-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--primary-dark); margin-bottom: 9px; }
+.flow-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ─── CONTACT ─── */
+.contact-box { margin-bottom: 14px; }
+.contact-btns { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 8px; }
+.cbtn { padding: 7px 12px; border-radius: 8px; border: 1.5px solid var(--border); background: white; cursor: pointer; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; color: var(--text); transition: all .15s; }
+.cbtn.wa  { border-color: #25D366; color: #25D366; }
+.cbtn.wa:hover  { background: #25D366; color: white; }
+.cbtn.ph  { border-color: var(--primary); color: var(--primary); }
+.cbtn.ph:hover  { background: var(--primary); color: white; }
+.cbtn.sms { border-color: var(--grey); color: var(--grey); }
+.cbtn.sms:hover { background: var(--grey); color: white; }
+.cbtn.em  { border-color: #EA4335; color: #EA4335; }
+.cbtn.em:hover  { background: #EA4335; color: white; }
+
+/* ─── FORM ─── */
+.sec-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--primary); margin-bottom: 10px; padding-bottom: 7px; border-bottom: 1.5px solid var(--lilac); }
+.fsec { margin-bottom: 16px; }
+.frow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fg { margin-bottom: 11px; }
+label { display: block; font-size: 12px; font-weight: 600; color: var(--text-light); margin-bottom: 5px; }
+input, select, textarea {
+  width: 100%; padding: 9px 11px; border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 13px; color: var(--text); background: white; outline: none;
+  transition: border-color .15s; font-family: inherit;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+textarea { resize: vertical; min-height: 72px; }
+
+/* ─── NOTES ─── */
+.notes-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.note-item { background: var(--lilac-pale); border-radius: 8px; padding: 10px 12px; }
+.note-hd { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.note-dt  { font-size: 11px; color: var(--text-light); }
+.note-del { font-size: 11px; color: var(--red); cursor: pointer; background: none; border: none; padding: 0; }
+.note-del:hover { text-decoration: underline; }
+.note-txt { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+/* ─── PAYMENT PANEL (in modal) ─── */
+.pay-panel { background: var(--blue-pale); border: 1px solid #BAE6FD; border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+.pay-panel .sec-lbl { color: var(--blue); border-bottom-color: #BAE6FD; }
+
+/* ─── BUTTONS ─── */
+.btn { padding: 9px 18px; border-radius: 9px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: all .15s; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); box-shadow: 0 4px 14px rgba(124,58,237,0.3); transform: translateY(-1px); }
+.btn-sec    { background: var(--lilac-pale); color: var(--primary); border: 1.5px solid var(--lilac); }
+.btn-sec:hover { background: var(--lilac); }
+.btn-danger { background: var(--red-pale); color: var(--red); }
+.btn-danger:hover { background: var(--red); color: white; }
+.btn-green  { background: var(--green-pale); color: #065F46; }
+.btn-green:hover { background: var(--green); color: white; }
+.btn-amber  { background: var(--amber-pale); color: #92400E; }
+.btn-amber:hover { background: var(--amber); color: white; }
+.btn-blue   { background: var(--blue-pale); color: #075985; }
+.btn-blue:hover { background: var(--blue); color: white; }
+.btn-grey   { background: var(--grey-pale); color: var(--grey); }
+.btn-grey:hover { background: var(--grey); color: white; }
+.btn-sm { padding: 6px 11px; font-size: 12px; border-radius: 7px; }
+
+/* ─── TOAST ─── */
+.toast { position: fixed; bottom: 22px; right: 22px; background: var(--text); color: white; padding: 11px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all .28s; box-shadow: 0 8px 26px rgba(0,0,0,0.2); max-width: 300px; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.ok   { background: var(--green); }
+.toast.warn { background: var(--amber); }
+.toast.err  { background: var(--red); }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--lilac); border-radius: 3px; }
+@media(max-width:520px) { .frow { grid-template-columns: 1fr; } .header-title p { display: none; } }
+
+/* ─── ITEMS ─── */
+.items-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.item-row { display: grid; grid-template-columns: 1fr 110px 110px 32px; gap: 8px; align-items: end; }
+@media(max-width:520px) { .item-row { grid-template-columns: 1fr 1fr; } .item-row .btn-rm-item { grid-column: 2; justify-self: end; } }
+.item-row .fg { margin: 0; }
+.btn-add-item { width: 100%; padding: 8px 12px; border: 1.5px dashed var(--primary-light); background: var(--lilac-pale); color: var(--primary); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all .15s; }
+.btn-add-item:hover { background: var(--lilac); border-color: var(--primary); }
+.btn-rm-item { width: 32px; height: 36px; border-radius: 7px; border: 1.5px solid var(--border); background: var(--red-pale); color: var(--red); cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; }
+.btn-rm-item:hover { background: var(--red); color: white; }
+.items-col-hd { display: grid; grid-template-columns: 1fr 110px 110px 32px; gap: 8px; margin-bottom: 2px; }
+.items-col-hd span { font-size: 11px; font-weight: 600; color: var(--text-light); }
+.items-total { text-align: right; font-size: 13px; font-weight: 700; color: var(--text); padding: 8px 0 4px; border-top: 1.5px solid var(--border); margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-brand">
+    <div class="header-logo">🦾</div>
+    <div class="header-title">
+      <h1>Cajee Botes Orthotists &amp; Prosthetists</h1>
+      <p>Patient Management Dashboard</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-date" id="hDate"></div>
+    <button class="btn-new" onclick="openAdd()">＋ Add Patient</button>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="tab active" id="tab-board" onclick="goTo('board')">📋 Board <span class="badge" id="b-board">0</span></div>
+  <div class="tab" id="tab-sched" onclick="goTo('sched')">🗓 Today <span class="badge" id="b-sched">0</span></div>
+  <div class="tab" id="tab-done"  onclick="goTo('done')">✅ Completed <span class="badge" id="b-done">0</span></div>
+</nav>
+
+<div id="migrateBanner" style="display:none;background:linear-gradient(135deg,#FEF3C7,#FDE68A);border-bottom:2px solid #D97706;padding:10px 20px;display:none;align-items:center;gap:12px;flex-wrap:wrap">
+  <span style="font-size:14px;font-weight:600;color:#92400E">⚠️ You have local patient data that hasn't been uploaded to Firebase yet.</span>
+  <button onclick="migrateLocalData()" style="background:#D97706;color:white;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">⬆️ Upload to Firebase now</button>
+  <button onclick="document.getElementById('migrateBanner').style.display='none'" style="background:none;border:none;font-size:18px;cursor:pointer;color:#92400E;margin-left:auto">✕</button>
+</div>
+
+<main class="main">
+  <div class="stats" id="stats"></div>
+
+  <div id="vw-board">
+    <div class="board" id="boardGrid"></div>
+    <div class="drag-hint">💡 Drag any patient card to move them between columns</div>
+  </div>
+
+  <div id="vw-sched" style="display:none">
+    <div class="sch-title">Today's Schedule</div>
+    <div class="sch-sub" id="schSub"></div>
+    <div id="schContent"></div>
+  </div>
+
+  <div id="vw-done" style="display:none">
+    <div class="arch-notice">
+      ℹ️ Patients auto-archived after
+      <select id="archSel" onchange="saveArch()">
+        <option value="30">30 days</option>
+        <option value="60">60 days</option>
+        <option value="90" selected>90 days</option>
+        <option value="180">180 days</option>
+        <option value="365">1 year</option>
+      </select>
+      since completion.
+    </div>
+    <input type="text" class="done-search" placeholder="🔍 Search completed patients…" id="doneQ" oninput="renderDone()">
+    <div class="done-grid" id="doneGrid"></div>
+  </div>
+</main>
+
+<!-- SETUP SCREEN -->
+<div id="setupScreen" style="display:none;position:fixed;inset:0;background:linear-gradient(160deg,#F5F3FF,#EDE9FE,#DDD6FE);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:white;border-radius:20px;padding:32px;max-width:540px;width:100%;box-shadow:0 30px 70px rgba(0,0,0,0.15)">
+    <div style="font-size:32px;margin-bottom:8px">🔥</div>
+    <h2 style="font-size:20px;font-weight:800;color:#1E1B4B;margin-bottom:6px">Connect to Firebase</h2>
+    <p style="font-size:13px;color:#6B7280;margin-bottom:20px;line-height:1.6">
+      Paste your Firebase config below so your dashboard syncs live between all users.
+      <a href="https://console.firebase.google.com/" target="_blank" style="color:#7C3AED;font-weight:600">Open Firebase Console →</a>
+    </p>
+    <div style="background:#F5F3FF;border-radius:10px;padding:14px;margin-bottom:16px;font-size:12px;color:#5B21B6;line-height:1.8">
+      <strong>Steps:</strong><br>
+      1. Go to Firebase Console → Create project (or open existing)<br>
+      2. Click ⚙️ Project Settings → "Your apps" → Add app → Web<br>
+      3. Copy the <code>firebaseConfig</code> object and paste it below<br>
+      4. Go to <strong>Firestore Database</strong> → Create database → Start in <strong>test mode</strong>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="display:block;font-size:12px;font-weight:600;color:#6B7280;margin-bottom:5px">Firebase Config (JSON)</label>
+      <textarea id="setupInput" rows="8" style="width:100%;padding:10px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:12px;font-family:monospace;outline:none;resize:vertical" placeholder='{"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'></textarea>
+    </div>
+    <div id="setupErr" style="color:#DC2626;font-size:12px;margin-bottom:10px;display:none"></div>
+    <button onclick="applyConfig()" style="background:#7C3AED;color:white;border:none;padding:11px 24px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;width:100%">Connect &amp; Save</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal">
+  <div class="modal" id="modalBox">
+    <div class="modal-hd">
+      <h2 id="mTitle">Add New Patient</h2>
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="flow-box" id="flowBox" style="display:none">
+        <div class="flow-lbl">Move to Stage</div>
+        <div class="flow-btns" id="flowBtns"></div>
+      </div>
+
+      <div class="contact-box" id="contactBox" style="display:none">
+        <div class="sec-lbl">Quick Contact</div>
+        <div class="contact-btns" id="contactBtns"></div>
+      </div>
+
+      <!-- Patient info -->
+      <div class="fsec">
+        <div class="sec-lbl">Patient Information</div>
+        <div class="frow">
+          <div class="fg"><label>Full Name *</label><input id="f_name" type="text" placeholder="Patient full name"></div>
+          <div class="fg"><label>Date of Birth</label><input id="f_dob" type="date"></div>
+        </div>
+        <div class="frow">
+          <div class="fg"><label>Phone Number</label><input id="f_phone" type="tel" placeholder="+27 82 000 0000"></div>
+          <div class="fg"><label>Email Address</label><input id="f_email" type="email" placeholder="patient@email.com"></div>
+        </div>
+        <div class="fg">
+          <label>Physical Address</label>
+          <input id="f_address" type="text" placeholder="Street, City, Province">
+        </div>
+        <div class="fg">
+          <label>Service Type</label>
+          <select id="f_svc">
+            <option value="">Select service…</option>
+            <option>Orthotics</option><option>Prosthetics</option>
+            <option>Orthotics &amp; Prosthetics</option><option>Consultation</option>
+            <option>Follow-up Fitting</option><option>Repair / Adjustment</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Appointment -->
+      <div class="fsec">
+        <div class="sec-lbl">Appointment Details</div>
+        <div class="frow">
+          <div class="fg"><label>Appointment Date *</label><input id="f_adate" type="date"></div>
+          <div class="fg"><label>Appointment Time</label><input id="f_atime" type="time"></div>
+        </div>
+        <div class="fg"><label>Referring Doctor / Source</label><input id="f_ref" type="text" placeholder="Dr. Smith / Walk-in / etc."></div>
+      </div>
+
+      <!-- Follow-up -->
+      <div class="fsec">
+        <div class="sec-lbl">Follow-up Message</div>
+        <div class="frow">
+          <div class="fg"><label>Send Message On</label><input id="f_fudate" type="date"></div>
+          <div class="fg"><label>Send Via</label>
+            <select id="f_futype">
+              <option value="WhatsApp">WhatsApp</option><option value="SMS">SMS</option>
+              <option value="Phone Call">Phone Call</option><option value="Email">Email</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Message Template <span style="font-weight:400;color:var(--text-light)">(use [Name] for first name)</span></label>
+          <textarea id="f_fumsg" rows="3" placeholder="Hi [Name], I hope you're settling in well with your new device. Please don't hesitate to reach out! — Cajee Botes O&P"></textarea>
+        </div>
+      </div>
+
+      <!-- Medical Aid & Payment -->
+      <div class="fsec pay-panel">
+        <div class="sec-lbl">Medical Aid &amp; Payment</div>
+        <div class="frow">
+          <div class="fg">
+            <label>Payment Type</label>
+            <select id="f_paytype" onchange="toggleMedAidField()">
+              <option value="">Not set yet</option>
+              <option value="Medical Aid">Medical Aid</option>
+              <option value="Private / Cash">Private / Cash</option>
+              <option value="Workers' Compensation">Workers' Compensation</option>
+              <option value="Road Accident Fund">Road Accident Fund</option>
+            </select>
+          </div>
+          <div class="fg" id="medAidNameGroup">
+            <label>Medical Aid Name</label>
+            <input id="f_medaid" type="text" placeholder="Discovery, Bonitas, Medshield…">
+          </div>
+        </div>
+        <div class="frow" id="medAidDetailsGroup" style="display:none">
+          <div class="fg">
+            <label>Medical Aid Number</label>
+            <input id="f_medaid_number" type="text" placeholder="Member / plan number">
+          </div>
+          <div class="fg">
+            <label>Diagnosis ICD Code</label>
+            <input id="f_icd" type="text" placeholder="e.g. Z89.511">
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fg">
+            <label>Claim Status</label>
+            <select id="f_claimstatus">
+              <option value="">Not submitted yet</option>
+              <option value="Submitted">Submitted</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected / Queried">Rejected / Queried</option>
+              <option value="N/A">N/A (Private pay)</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Auth / Claim Number</label>
+            <input id="f_claimno" type="text" placeholder="Reference number…">
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fg">
+            <label>Amount Due (R)</label>
+            <input id="f_amount" type="number" placeholder="0.00" step="0.01" min="0">
+          </div>
+          <div class="fg">
+            <label>Payment Received</label>
+            <select id="f_payreceived">
+              <option value="Pending">Pending</option>
+              <option value="Partial">Partially Received</option>
+              <option value="Paid">Paid in Full ✓</option>
+              <option value="Written Off">Written Off</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items / Products -->
+      <div class="fsec">
+        <div class="sec-lbl">Items / Products</div>
+        <div class="items-col-hd">
+          <span>Description</span><span>Code</span><span>Cost (R)</span><span></span>
+        </div>
+        <div id="itemsList" class="items-list"></div>
+        <button type="button" class="btn-add-item" onclick="addItem()">＋ Add Item</button>
+        <div class="items-total" id="itemsTotal" style="display:none"></div>
+      </div>
+
+      <!-- Notes -->
+      <div class="fsec">
+        <div class="sec-lbl">Clinical Notes</div>
+        <div id="existNotes"></div>
+        <div class="fg">
+          <label id="noteLbl">Notes</label>
+          <textarea id="f_note" rows="3" placeholder="Clinical observations, measurements, fitting details…"></textarea>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-sec" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="delBtn" style="display:none" onclick="confirmDel()">Delete Patient</button>
+      <button class="btn btn-primary" id="saveBtn" onclick="save()">Save Patient</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════
+// FIREBASE CONFIG
+// ═══════════════════════════════════════════════════
+const SKEY = 'cajee_botes_cfg';
+const FB_KEY = 'cajee_botes_firebase_cfg';
+const S  = { APPT:'appointment', SEEN:'seen', FU:'followup', PAY:'payment', DONE:'completed' };
+const SL = { appointment:'Appointment Scheduled', seen:'Patient Seen', followup:'Follow-up Pending', payment:'Payment Pending', completed:'Completed' };
+
+let db = [], eid = null, vw = 'board', archDays = 90;
+let dragId = null;
+let fsdb = null, DOC = null;
+let editItems = [];
+
+function showSetup() {
+  const ss = document.getElementById('setupScreen');
+  ss.style.display = 'flex';
+}
+function hideSetup() {
+  document.getElementById('setupScreen').style.display = 'none';
+}
+
+function applyConfig() {
+  const raw = document.getElementById('setupInput').value.trim();
+  const errEl = document.getElementById('setupErr');
+  errEl.style.display = 'none';
+  let cfg;
+  try {
+    // Accept both raw object and JSON
+    cfg = JSON.parse(raw.replace(/^[^{]*/, '').replace(/[^}]*$/, ''));
+    if (!cfg.apiKey || !cfg.projectId) throw new Error('Missing required fields');
+  } catch(e) {
+    errEl.textContent = 'Invalid config — paste the full firebaseConfig object (including the curly braces).';
+    errEl.style.display = 'block';
+    return;
+  }
+  localStorage.setItem(FB_KEY, JSON.stringify(cfg));
+  location.reload();
+}
+
+function initFirebase(cfg) {
+  if (!firebase.apps.length) firebase.initializeApp(cfg);
+  fsdb = firebase.firestore();
+  DOC  = fsdb.collection('clinic').doc('patients');
+}
+
+function load() {
+  const cfg = JSON.parse(localStorage.getItem(SKEY) || '{}');
+  archDays = cfg.archDays || 90;
+  document.getElementById('archSel').value = archDays;
+
+  const fbCfg = JSON.parse(localStorage.getItem(FB_KEY) || 'null');
+  if (!fbCfg) { showSetup(); return; }
+
+  initFirebase(fbCfg);
+
+  // Real-time listener — fires on every change from any user
+  let firstSnapshot = true;
+  DOC.onSnapshot(snap => {
+    if (snap.exists) {
+      db = snap.data().patients || [];
+    } else {
+      db = [];
+      if (db.length === 0) seedData();
+    }
+    if (firstSnapshot) { firstSnapshot = false; checkLocalMigration(); }
+    renderAll();
+  }, err => {
+    console.error('Firestore error:', err);
+    toast('Sync error — check Firebase setup', 'err');
+  });
+}
+
+function save_db() {
+  if (!DOC) return;
+  DOC.set({ patients: db }).catch(e => toast('Save failed: ' + e.message, 'err'));
+}
+
+function saveArch() {
+  archDays = +document.getElementById('archSel').value;
+  localStorage.setItem(SKEY, JSON.stringify({ archDays }));
+  renderAll(); toast('Archive setting saved', 'ok');
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+function fmtDate(s) {
+  if (!s) return '';
+  return new Date(s + 'T00:00:00').toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
+}
+function fmtTime(s) {
+  if (!s) return '';
+  const [h, m] = s.split(':'); const hr = +h;
+  return `${hr > 12 ? hr-12 : hr === 0 ? 12 : hr}:${m} ${hr >= 12 ? 'PM' : 'AM'}`;
+}
+function initials(n) { return (n||'').split(' ').map(x => x[0]).join('').toUpperCase().slice(0,2); }
+function today() { return new Date().toISOString().split('T')[0]; }
+function bdayToday(d) { if (!d) return false; const t=new Date(),b=new Date(d+'T00:00:00'); return b.getDate()===t.getDate()&&b.getMonth()===t.getMonth(); }
+function bdaySoon(d)  { if (!d) return false; const t=new Date(),b=new Date(d+'T00:00:00'); const nx=new Date(t.getFullYear(),b.getMonth(),b.getDate()); if(nx<t)nx.setFullYear(t.getFullYear()+1); return (nx-t)/86400000<=7; }
+function fuOverdue(p) { return p.status===S.FU && p.fudate && p.fudate<today(); }
+function fuToday(p)   { return p.status===S.FU && p.fudate===today(); }
+function isArchived(p){ if(p.status!==S.DONE||!p.doneDate)return false; return ((new Date()-new Date(p.doneDate+'T00:00:00'))/86400000)>archDays; }
+function cleanPhone(ph){ return (ph||'').replace(/[\s\-()]/g,''); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function colCls(s){ return {appointment:'col-appt',seen:'col-seen',followup:'col-fu',payment:'col-pay',completed:'col-done'}[s]||''; }
+
+// ═══════════════════════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════════════════════
+function dragStart(e, id) {
+  dragId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', id);
+  setTimeout(() => { const el = document.getElementById('pc-'+id); if(el) el.classList.add('is-dragging'); }, 0);
+}
+function dragEnd(e) {
+  if (dragId) { const el = document.getElementById('pc-'+dragId); if(el) el.classList.remove('is-dragging'); }
+}
+function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function drop(e, s) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (dragId) { mv(dragId, s); dragId = null; }
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════
+function renderAll() {
+  renderStats(); renderBadges();
+  if (vw==='board') renderBoard();
+  else if (vw==='sched') renderSched();
+  else renderDone();
+}
+
+function renderStats() {
+  const todayA  = db.filter(p => p.status===S.APPT && p.adate===today());
+  const active  = db.filter(p => p.status!==S.DONE);
+  const fuPend  = db.filter(p => p.status===S.FU);
+  const payPend = db.filter(p => p.status===S.PAY);
+  const fuOvr   = fuPend.filter(p => fuOverdue(p));
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="stat-icon" style="background:var(--lilac-mid)">📅</div><div><div class="stat-val">${todayA.length}</div><div class="stat-lbl">Today's Appts</div></div></div>
+    <div class="stat"><div class="stat-icon" style="background:var(--green-pale)">👥</div><div><div class="stat-val">${active.length}</div><div class="stat-lbl">Active Patients</div></div></div>
+    <div class="stat"><div class="stat-icon" style="background:var(--amber-pale)">💬</div><div><div class="stat-val">${fuPend.length}</div><div class="stat-lbl">Follow-ups Pending</div></div></div>
+    <div class="stat"><div class="stat-icon" style="background:var(--blue-pale)">💳</div><div><div class="stat-val">${payPend.length}</div><div class="stat-lbl">Awaiting Payment</div></div></div>
+    ${fuOvr.length?`<div class="stat" style="border:2px solid var(--amber)"><div class="stat-icon" style="background:var(--amber-pale)">⚠️</div><div><div class="stat-val" style="color:var(--amber)">${fuOvr.length}</div><div class="stat-lbl">Overdue Follow-ups</div></div></div>`:''}
+  `;
+}
+
+function renderBadges() {
+  document.getElementById('b-board').textContent = db.filter(p => p.status!==S.DONE).length;
+  document.getElementById('b-sched').textContent = db.filter(p => p.status===S.APPT && p.adate===today()).length;
+  document.getElementById('b-done').textContent  = db.filter(p => p.status===S.DONE && !isArchived(p)).length;
+}
+
+function renderBoard() {
+  const cols = [
+    { s:S.APPT, lbl:'Appointment Scheduled', em:'📅', dc:'col-appt', dot:'dot-appt' },
+    { s:S.SEEN, lbl:'Patient Seen',           em:'✓',  dc:'col-seen', dot:'dot-seen' },
+    { s:S.FU,   lbl:'Follow-up Pending',      em:'💬', dc:'col-fu',   dot:'dot-fu'   },
+    { s:S.PAY,  lbl:'Payment Pending',        em:'💳', dc:'col-pay',  dot:'dot-pay'  },
+    { s:S.DONE, lbl:'Completed',              em:'✅', dc:'col-done', dot:'dot-done' },
+  ];
+  document.getElementById('boardGrid').innerHTML = cols.map(c => {
+    const pts = db.filter(p => p.status===c.s && !isArchived(p))
+      .sort((a,b) => (a.atime||'00:00').localeCompare(b.atime||'00:00') || new Date(a.adate)-new Date(b.adate));
+    return `
+      <div class="col">
+        <div class="col-hd">
+          <div class="col-title"><span class="dot ${c.dot}"></span>${c.em} ${c.lbl}</div>
+          <span class="col-cnt">${pts.length}</span>
+        </div>
+        <div class="col-cards ${c.dc}" id="cards-${c.s}"
+          ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event,'${c.s}')">
+          ${pts.length ? pts.map(p => pcard(p, c.s)).join('') : `<div class="empty"><div class="ei">${c.em}</div><p>Drop here or add a patient</p></div>`}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function pcard(p, col) {
+  const bt = bdayToday(p.dob), bs = bdaySoon(p.dob)&&!bt;
+  const ov = fuOverdue(p), ft = fuToday(p);
+  const isPaid    = p.payreceived === 'Paid';
+  const isRejected= p.claimstatus === 'Rejected / Queried';
+  const payPending= col===S.PAY && !isPaid;
+  const isMedAid  = (p.paytype||'').includes('Medical Aid') || (p.paytype||'').includes('Workers') || (p.paytype||'').includes('Road');
+  const isPrivate = (p.paytype||'').includes('Private');
+
+  return `
+    <div class="pcard ${colCls(p.status)}" id="pc-${p.id}"
+      draggable="true"
+      ondragstart="dragStart(event,'${p.id}')"
+      ondragend="dragEnd(event)"
+      onclick="openEdit('${p.id}')">
+      <div class="pc-top">
+        <div class="pc-left">
+          <div class="avatar">${initials(p.name)}</div>
+          <div>
+            <div class="pc-name">${esc(p.name)}</div>
+            ${p.svc?`<span class="pc-svc">${esc(p.svc)}</span>`:''}
+          </div>
+        </div>
+        <div class="pc-tags">
+          ${bt ? '<span class="tag tag-bday">🎂 Birthday!</span>' : ''}
+          ${bs && !bt ? '<span class="tag tag-bday">🎂 This week</span>' : ''}
+          ${ov ? '<span class="tag tag-over">⚠️ Overdue</span>' : ''}
+          ${ft ? '<span class="tag tag-today">📨 Due today</span>' : ''}
+          ${col===S.PAY && isPaid   ? '<span class="tag tag-paid">✓ Paid</span>' : ''}
+          ${col===S.PAY && isRejected ? '<span class="tag tag-rejected">❌ Queried</span>' : ''}
+          ${col===S.PAY && payPending && !isRejected ? '<span class="tag tag-pay-pend">💳 Pending</span>' : ''}
+          ${col===S.PAY && isMedAid  ? '<span class="tag tag-medaid">🏥 Med Aid</span>' : ''}
+          ${col===S.PAY && isPrivate ? '<span class="tag tag-private">💵 Private</span>' : ''}
+        </div>
+      </div>
+      <div class="pc-meta">
+        ${p.adate?`<div class="pc-meta-row">📅 ${fmtDate(p.adate)}${p.atime?' at '+fmtTime(p.atime):''}</div>`:''}
+        ${p.phone?`<div class="pc-meta-row">📞 ${esc(p.phone)}</div>`:''}
+        ${col===S.PAY && p.paytype  ?`<div class="pc-meta-row">💳 ${esc(p.paytype)}</div>`:''}
+        ${col===S.PAY && p.medaid   ?`<div class="pc-meta-row">🏥 ${esc(p.medaid)}</div>`:''}
+        ${col===S.PAY && p.claimstatus?`<div class="pc-meta-row">📋 ${esc(p.claimstatus)}</div>`:''}
+        ${col===S.PAY && p.amount   ?`<div class="pc-meta-row">💰 R ${parseFloat(p.amount).toFixed(2)}</div>`:''}
+        ${col!==S.PAY && p.fudate   ?`<div class="pc-meta-row">💬 Follow-up: ${fmtDate(p.fudate)}</div>`:''}
+        ${p.notes&&p.notes.length   ?`<div class="pc-meta-row">📝 ${p.notes.length} note${p.notes.length>1?'s':''}</div>`:''}
+      </div>
+    </div>`;
+}
+
+function renderSched() {
+  const td = today();
+  const pts = db.filter(p => p.adate===td).sort((a,b)=>(a.atime||'00:00').localeCompare(b.atime||'00:00'));
+  document.getElementById('schSub').textContent = `${pts.length} appointment${pts.length!==1?'s':''} today`;
+  if (!pts.length) {
+    document.getElementById('schContent').innerHTML = `<div style="background:white;border-radius:16px;padding:60px"><div class="empty"><div class="ei">📅</div><p>No appointments today.</p><button class="btn btn-primary" style="margin-top:14px" onclick="openAdd()">Add Patient</button></div></div>`;
+    return;
+  }
+  document.getElementById('schContent').innerHTML = pts.map(p => `
+    <div class="timeslot">
+      <div class="t-lbl">${p.atime?fmtTime(p.atime):'—'}</div>
+      <div class="t-line">
+        <div class="pcard ${colCls(p.status)}" onclick="openEdit('${p.id}')">
+          <div class="pc-top">
+            <div class="pc-left">
+              <div class="avatar">${initials(p.name)}</div>
+              <div><div class="pc-name">${esc(p.name)}</div>${p.svc?`<span class="pc-svc">${esc(p.svc)}</span>`:''}</div>
+            </div>
+            <span style="font-size:11px;padding:3px 7px;border-radius:6px;background:var(--lilac-pale);color:var(--primary);font-weight:700">${SL[p.status]}</span>
+          </div>
+          <div class="pc-meta">
+            ${p.phone?`<div class="pc-meta-row">📞 ${esc(p.phone)}</div>`:''}
+            ${p.ref?`<div class="pc-meta-row">👨‍⚕️ Ref: ${esc(p.ref)}</div>`:''}
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderDone() {
+  const q = (document.getElementById('doneQ').value||'').toLowerCase();
+  const pts = db.filter(p => p.status===S.DONE && !isArchived(p))
+    .filter(p => !q || p.name.toLowerCase().includes(q) || (p.svc||'').toLowerCase().includes(q))
+    .sort((a,b) => new Date(b.doneDate||0)-new Date(a.doneDate||0));
+  const g = document.getElementById('doneGrid');
+  if (!pts.length) {
+    g.innerHTML = `<div style="grid-column:1/-1;background:white;border-radius:16px;padding:60px"><div class="empty"><div class="ei">✅</div><p>No completed patients${q?' matching search':''}.</p></div></div>`;
+    return;
+  }
+  g.innerHTML = pts.map(p => `
+    <div class="pcard col-done" onclick="openEdit('${p.id}')">
+      <div class="pc-top">
+        <div class="pc-left">
+          <div class="avatar" style="background:linear-gradient(135deg,#9CA3AF,#6B7280)">${initials(p.name)}</div>
+          <div><div class="pc-name">${esc(p.name)}</div>${p.svc?`<span class="pc-svc">${esc(p.svc)}</span>`:''}</div>
+        </div>
+        ${p.payreceived==='Paid'?'<span class="tag tag-paid">✓ Paid</span>':''}
+      </div>
+      <div class="pc-meta">
+        ${p.adate?`<div class="pc-meta-row">📅 Appt: ${fmtDate(p.adate)}</div>`:''}
+        ${p.doneDate?`<div class="pc-meta-row">✅ Completed: ${fmtDate(p.doneDate)}</div>`:''}
+        ${p.phone?`<div class="pc-meta-row">📞 ${esc(p.phone)}</div>`:''}
+        ${p.paytype?`<div class="pc-meta-row">💳 ${esc(p.paytype)}</div>`:''}
+        ${p.amount?`<div class="pc-meta-row">💰 R ${parseFloat(p.amount).toFixed(2)}</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════
+function mv(id, ns) {
+  const p = db.find(x => x.id===id);
+  if (!p || p.status===ns) return;
+  p.status = ns;
+  if (ns===S.DONE) p.doneDate = today();
+  save_db(); renderAll();
+  toast(`${p.name} → ${SL[ns]}`, 'ok');
+}
+
+function confirmDel() {
+  if (confirm('Delete this patient? This cannot be undone.')) {
+    db = db.filter(p => p.id!==eid);
+    save_db(); closeModal(); renderAll();
+    toast('Patient removed', 'ok');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════
+function openAdd() {
+  eid = null;
+  document.getElementById('mTitle').textContent = 'Add New Patient';
+  document.getElementById('saveBtn').textContent = 'Save Patient';
+  document.getElementById('delBtn').style.display = 'none';
+  document.getElementById('flowBox').style.display = 'none';
+  document.getElementById('contactBox').style.display = 'none';
+  document.getElementById('existNotes').innerHTML = '';
+  document.getElementById('noteLbl').textContent = 'Notes';
+  clearForm();
+  document.getElementById('f_adate').value = today();
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('f_name').focus(), 100);
+}
+
+function openEdit(id) {
+  eid = id;
+  const p = db.find(x => x.id===id);
+  if (!p) return;
+  document.getElementById('mTitle').textContent = p.name;
+  document.getElementById('saveBtn').textContent = 'Save Changes';
+  document.getElementById('delBtn').style.display = 'inline-flex';
+  document.getElementById('noteLbl').textContent = 'Add New Note';
+
+  document.getElementById('f_name').value    = p.name||'';
+  document.getElementById('f_dob').value     = p.dob||'';
+  document.getElementById('f_phone').value   = p.phone||'';
+  document.getElementById('f_email').value   = p.email||'';
+  document.getElementById('f_address').value = p.address||'';
+  document.getElementById('f_svc').value     = p.svc||'';
+  document.getElementById('f_adate').value   = p.adate||'';
+  document.getElementById('f_atime').value   = p.atime||'';
+  document.getElementById('f_ref').value     = p.ref||'';
+  document.getElementById('f_fudate').value  = p.fudate||'';
+  document.getElementById('f_futype').value  = p.futype||'WhatsApp';
+  document.getElementById('f_fumsg').value   = p.fumsg||'';
+  document.getElementById('f_paytype').value = p.paytype||'';
+  document.getElementById('f_medaid').value  = p.medaid||'';
+  document.getElementById('f_medaid_number').value = p.medaid_number||'';
+  document.getElementById('f_icd').value     = p.icd||'';
+  document.getElementById('f_claimstatus').value = p.claimstatus||'';
+  document.getElementById('f_claimno').value = p.claimno||'';
+  document.getElementById('f_amount').value  = p.amount||'';
+  document.getElementById('f_payreceived').value = p.payreceived||'Pending';
+  document.getElementById('f_note').value    = '';
+  editItems = JSON.parse(JSON.stringify(p.items||[]));
+  renderEditItems();
+  toggleMedAidField();
+
+  document.getElementById('flowBox').style.display = 'block';
+  buildFlowBtns(p);
+
+  if (p.phone||p.email) { document.getElementById('contactBox').style.display='block'; buildContactBtns(p); }
+  else { document.getElementById('contactBox').style.display='none'; }
+
+  buildNotes(p);
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('modalBox').scrollTop = 0;
+}
+
+function buildFlowBtns(p) {
+  const steps = [
+    { s:S.APPT, lbl:'📅 Appointment', cls:'btn-sec'   },
+    { s:S.SEEN, lbl:'✓ Seen',         cls:'btn-green' },
+    { s:S.FU,   lbl:'💬 Follow-up',   cls:'btn-amber' },
+    { s:S.PAY,  lbl:'💳 Payment',     cls:'btn-blue'  },
+    { s:S.DONE, lbl:'✅ Completed',   cls:'btn-grey'  },
+  ];
+  document.getElementById('flowBtns').innerHTML = steps.map(st => `
+    <button class="btn btn-sm ${st.cls}" style="${p.status===st.s?'outline:3px solid var(--primary-dark);font-weight:800':''}"
+      onclick="mv('${p.id}','${st.s}');buildFlowBtns(db.find(x=>x.id==='${p.id}'))">
+      ${st.lbl}${p.status===st.s?' ✓':''}
+    </button>`).join('');
+}
+
+function buildContactBtns(p) {
+  const cp = cleanPhone(p.phone), first = (p.name||'').split(' ')[0];
+  const msg = (p.fumsg||'').replace(/\[Name\]/g, first);
+  const waNum = cp.replace('+','');
+  document.getElementById('contactBtns').innerHTML = `
+    ${p.phone?`
+      <a class="cbtn wa"  href="https://web.whatsapp.com/send?phone=${waNum}${msg?'&text='+encodeURIComponent(msg):''}" target="_blank">💬 WhatsApp</a>
+      <a class="cbtn ph"  href="tel:${p.phone}">📞 Call</a>
+      <a class="cbtn sms" href="sms:${p.phone}${msg?'?body='+encodeURIComponent(msg):''}">📱 SMS</a>
+    `:''}
+    ${p.email?`<a class="cbtn em" href="mailto:${esc(p.email)}${msg?'?subject='+encodeURIComponent('Follow-up — Cajee Botes O&P')+'&body='+encodeURIComponent(msg):''}">✉️ Email</a>`:''}
+  `;
+}
+
+function buildNotes(p) {
+  const notes = p.notes||[];
+  document.getElementById('existNotes').innerHTML = notes.length ? `
+    <div class="notes-list">
+      ${notes.map((n,i) => `
+        <div class="note-item">
+          <div class="note-hd">
+            <span class="note-dt">${esc(n.date)}</span>
+            <button class="note-del" onclick="delNote('${p.id}',${i})">✕ Remove</button>
+          </div>
+          <div class="note-txt">${esc(n.text)}</div>
+        </div>`).join('')}
+    </div>` : '';
+}
+
+function delNote(pid, idx) {
+  const p = db.find(x => x.id===pid);
+  if (!p||!p.notes) return;
+  p.notes.splice(idx,1); save_db(); buildNotes(p); toast('Note removed','ok');
+}
+
+function toggleMedAidField() {
+  const pt = document.getElementById('f_paytype').value;
+  const show = pt.includes('Medical Aid') || pt.includes('Workers') || pt.includes('Road');
+  document.getElementById('medAidNameGroup').style.opacity = show ? '1' : '0.4';
+  document.getElementById('medAidDetailsGroup').style.display = show ? 'grid' : 'none';
+}
+
+function clearForm() {
+  ['f_name','f_dob','f_phone','f_email','f_address','f_adate','f_atime','f_ref','f_fudate','f_fumsg','f_note','f_medaid','f_medaid_number','f_icd','f_claimno','f_amount'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f_svc').value = '';
+  document.getElementById('f_futype').value = 'WhatsApp';
+  document.getElementById('f_paytype').value = '';
+  document.getElementById('f_claimstatus').value = '';
+  document.getElementById('f_payreceived').value = 'Pending';
+  editItems = [];
+  renderEditItems();
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); eid = null; }
+
+function save() {
+  const name = document.getElementById('f_name').value.trim();
+  if (!name) { toast('Patient name is required','err'); document.getElementById('f_name').focus(); return; }
+  const noteText = document.getElementById('f_note').value.trim();
+  const noteEntry = noteText ? [{ date: new Date().toLocaleString('en-ZA',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}), text: noteText }] : [];
+  const fields = {
+    name, dob:document.getElementById('f_dob').value, phone:document.getElementById('f_phone').value.trim(),
+    email:document.getElementById('f_email').value.trim(), address:document.getElementById('f_address').value.trim(),
+    svc:document.getElementById('f_svc').value,
+    adate:document.getElementById('f_adate').value, atime:document.getElementById('f_atime').value,
+    ref:document.getElementById('f_ref').value.trim(), fudate:document.getElementById('f_fudate').value,
+    futype:document.getElementById('f_futype').value, fumsg:document.getElementById('f_fumsg').value.trim(),
+    paytype:document.getElementById('f_paytype').value, medaid:document.getElementById('f_medaid').value.trim(),
+    medaid_number:document.getElementById('f_medaid_number').value.trim(),
+    icd:document.getElementById('f_icd').value.trim(),
+    claimstatus:document.getElementById('f_claimstatus').value, claimno:document.getElementById('f_claimno').value.trim(),
+    amount:document.getElementById('f_amount').value, payreceived:document.getElementById('f_payreceived').value,
+    items: editItems.filter(it => it.description || it.code || it.cost),
+  };
+  if (eid) {
+    const p = db.find(x => x.id===eid);
+    if (!p) return;
+    Object.assign(p, fields);
+    p.upd = new Date().toISOString();
+    if (noteText) p.notes = [...noteEntry, ...(p.notes||[])];
+    toast('Patient updated','ok');
+  } else {
+    db.unshift({ id:uid(), ...fields, status:S.APPT, notes:noteEntry, doneDate:null, created:new Date().toISOString(), upd:new Date().toISOString() });
+    toast(`${name} added`,'ok');
+  }
+  save_db(); closeModal(); renderAll();
+}
+
+// ═══════════════════════════════════════════════════
+// VIEW SWITCHING
+// ═══════════════════════════════════════════════════
+function goTo(v) {
+  vw = v;
+  ['board','sched','done'].forEach(x => {
+    document.getElementById(`vw-${x}`).style.display = x===v ? 'block' : 'none';
+    document.getElementById(`tab-${x}`).classList.toggle('active', x===v);
+  });
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════
+// TOAST & CLOCK
+// ═══════════════════════════════════════════════════
+let toastT;
+function toast(msg, type='') {
+  clearTimeout(toastT);
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = `toast ${type} show`;
+  toastT = setTimeout(() => el.className='toast', 2600);
+}
+function tick() {
+  const n = new Date();
+  document.getElementById('hDate').innerHTML =
+    n.toLocaleDateString('en-ZA',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) +
+    '<br><span style="font-size:11px;opacity:.7">' +
+    n.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) + '</span>';
+}
+
+// ═══════════════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') closeModal();
+  if (e.key==='n' && !['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) openAdd();
+});
+document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) closeModal(); });
+
+// ═══════════════════════════════════════════════════
+// SEED DATA (first run)
+// ═══════════════════════════════════════════════════
+function seedData() {
+  const d = n => new Date(Date.now()+n*86400000).toISOString().split('T')[0];
+  db = [
+    { id:uid(), name:'Sarah Johnson',   dob:'1985-03-15', phone:'+27 82 123 4567', email:'sarah.j@email.com',
+      svc:'Prosthetics', adate:today(), atime:'09:00', ref:'Dr. Patel',
+      fudate:d(7), futype:'WhatsApp', fumsg:"Hi [Name], I hope you're adjusting well to your new prosthetic. Let us know if you need any tweaks! — Cajee Botes O&P",
+      paytype:'Medical Aid', medaid:'Discovery', claimstatus:'', claimno:'', amount:'4500', payreceived:'Pending',
+      status:S.APPT, notes:[{date:'Today',text:'Initial fitting for below-knee prosthesis. Referred by Dr. Patel.'}], doneDate:null, created:new Date().toISOString(), upd:new Date().toISOString() },
+    { id:uid(), name:'Michael Dlamini', dob:'1972-07-22', phone:'+27 71 987 6543', email:'',
+      svc:'Orthotics', adate:today(), atime:'10:30', ref:'Walk-in',
+      fudate:d(5), futype:'WhatsApp', fumsg:"Hi [Name], how is the orthotic brace feeling? Any discomfort? — Cajee Botes O&P",
+      paytype:'Private / Cash', medaid:'', claimstatus:'N/A', claimno:'', amount:'2200', payreceived:'Pending',
+      status:S.SEEN, notes:[{date:'Today 10:30',text:'Fitted KAFO brace, left leg. Patient comfortable. Review in 2 weeks.'}], doneDate:null, created:new Date().toISOString(), upd:new Date().toISOString() },
+    { id:uid(), name:'Fatima Abrahams', dob:'1990-11-08', phone:'+27 83 456 7890', email:'fatima.a@gmail.com',
+      svc:'Orthotics & Prosthetics', adate:d(1), atime:'14:00', ref:'Dr. van der Merwe',
+      fudate:d(3), futype:'WhatsApp', fumsg:"Hi [Name], just checking in — hope everything is going well with your new device! — Cajee Botes O&P",
+      paytype:'Medical Aid', medaid:'Bonitas', claimstatus:'', claimno:'', amount:'6800', payreceived:'Pending',
+      status:S.FU, notes:[{date:'Last session',text:'AFO fitted. Patient very compliant.'}], doneDate:null, created:new Date().toISOString(), upd:new Date().toISOString() },
+    { id:uid(), name:'Sipho Khumalo',   dob:'1978-05-30', phone:'+27 72 654 3210', email:'',
+      svc:'Prosthetics', adate:d(-7), atime:'11:00', ref:'Dr. Botha',
+      fudate:d(-2), futype:'WhatsApp', fumsg:"Hi [Name], how are you getting on? Ready to confirm payment when you are! — Cajee Botes O&P",
+      paytype:'Medical Aid', medaid:'Medshield', claimstatus:'Submitted', claimno:'MSH-2026-0041', amount:'9500', payreceived:'Pending',
+      status:S.PAY, notes:[{date:'Last week',text:'Above-knee prosthesis fitted. Follow-up done. Claim submitted to Medshield.'}], doneDate:null, created:new Date().toISOString(), upd:new Date().toISOString() },
+    { id:uid(), name:'James Nkosi',     dob:'1968-09-03', phone:'+27 79 321 0987', email:'',
+      svc:'Prosthetics', adate:d(-14), atime:'11:00', ref:'Dr. Botha',
+      fudate:d(-5), futype:'Phone Call', fumsg:"Hi [Name], this is Cajee Botes O&P calling to check in after 2 weeks. Please call us back — thank you!",
+      paytype:'Private / Cash', medaid:'', claimstatus:'N/A', claimno:'', amount:'3500', payreceived:'Paid',
+      status:S.DONE, notes:[{date:'2 weeks ago',text:'Above-knee prosthesis. Patient very happy. Gait training recommended.'}],
+      doneDate:d(-3), created:new Date().toISOString(), upd:new Date().toISOString() },
+  ];
+  save_db();
+}
+
+// ═══════════════════════════════════════════════════
+// MIGRATION
+// ═══════════════════════════════════════════════════
+function checkLocalMigration() {
+  const local = localStorage.getItem('cajee_botes_v3') || localStorage.getItem('cajee_botes_v2');
+  if (!local) return;
+  const localDb = JSON.parse(local);
+  if (!localDb || localDb.length === 0) return;
+  // Only show banner if Firestore is empty
+  DOC.get().then(snap => {
+    const cloudCount = snap.exists ? (snap.data().patients || []).length : 0;
+    if (cloudCount === 0 && localDb.length > 0) {
+      document.getElementById('migrateBanner').style.display = 'flex';
+    }
+  });
+}
+
+function migrateLocalData() {
+  const local = localStorage.getItem('cajee_botes_v3') || localStorage.getItem('cajee_botes_v2');
+  if (!local) return;
+  const localDb = JSON.parse(local);
+  if (!localDb || localDb.length === 0) return;
+  db = localDb;
+  save_db();
+  document.getElementById('migrateBanner').style.display = 'none';
+  toast(`${localDb.length} patients uploaded to Firebase ✓`, 'ok');
+}
+
+// ═══════════════════════════════════════════════════
+// ITEMS / PRODUCTS
+// ═══════════════════════════════════════════════════
+function addItem(item) {
+  editItems.push(item || { description:'', code:'', cost:'' });
+  renderEditItems();
+}
+
+function removeItem(idx) {
+  editItems.splice(idx, 1);
+  renderEditItems();
+}
+
+function renderEditItems() {
+  const list = document.getElementById('itemsList');
+  const totalEl = document.getElementById('itemsTotal');
+  if (!editItems.length) { list.innerHTML = ''; totalEl.style.display = 'none'; return; }
+  list.innerHTML = editItems.map((it, i) => `
+    <div class="item-row">
+      <div class="fg"><input type="text" placeholder="Description" value="${esc(it.description||'')}" oninput="editItems[${i}].description=this.value"></div>
+      <div class="fg"><input type="text" placeholder="Code" value="${esc(it.code||'')}" oninput="editItems[${i}].code=this.value"></div>
+      <div class="fg"><input type="number" placeholder="0.00" value="${it.cost||''}" step="0.01" min="0" oninput="editItems[${i}].cost=this.value;updateItemsTotal()"></div>
+      <button type="button" class="btn-rm-item" onclick="removeItem(${i})" title="Remove">✕</button>
+    </div>`).join('');
+  updateItemsTotal();
+}
+
+function updateItemsTotal() {
+  const total = editItems.reduce((s, it) => s + (parseFloat(it.cost)||0), 0);
+  const totalEl = document.getElementById('itemsTotal');
+  const hasAmt = editItems.some(it => it.cost);
+  totalEl.style.display = hasAmt ? 'block' : 'none';
+  if (hasAmt) {
+    totalEl.textContent = `Total: R ${total.toFixed(2)}`;
+    document.getElementById('f_amount').value = total.toFixed(2);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+load(); // sets up Firestore listener → renderAll() called on first snapshot
+tick(); setInterval(tick, 30000);
+</script>
+</body>
+</html>
