@@ -480,7 +480,7 @@ textarea { resize: vertical; min-height: 72px; }
             <input id="f_medaid" type="text" placeholder="Discovery, Bonitas, Medshield…">
           </div>
         </div>
-        <div class="frow" id="medAidDetailsGroup" style="display:none">
+        <div class="frow" id="medAidDetailsGroup">
           <div class="fg">
             <label>Medical Aid Number</label>
             <input id="f_medaid_number" type="text" placeholder="Member / plan number">
@@ -985,7 +985,6 @@ function toggleMedAidField() {
   const pt = document.getElementById('f_paytype').value;
   const show = pt.includes('Medical Aid') || pt.includes('Workers') || pt.includes('Road');
   document.getElementById('medAidNameGroup').style.opacity = show ? '1' : '0.4';
-  document.getElementById('medAidDetailsGroup').style.display = show ? 'grid' : 'none';
 }
 
 function clearForm() {
