@@ -316,6 +316,7 @@ textarea { resize: vertical; min-height: 72px; }
   </div>
   <div class="header-right">
     <div class="header-date" id="hDate"></div>
+    <button class="btn-new" onclick="exportData()" title="Download backup">💾 Backup</button>
     <button class="btn-new" onclick="openAdd()">＋ Add Patient</button>
   </div>
 </header>
@@ -326,11 +327,6 @@ textarea { resize: vertical; min-height: 72px; }
   <div class="tab" id="tab-done"  onclick="goTo('done')">✅ Completed <span class="badge" id="b-done">0</span></div>
 </nav>
 
-<div id="migrateBanner" style="display:none;background:linear-gradient(135deg,#FEF3C7,#FDE68A);border-bottom:2px solid #D97706;padding:10px 20px;display:none;align-items:center;gap:12px;flex-wrap:wrap">
-  <span style="font-size:14px;font-weight:600;color:#92400E">⚠️ You have local patient data that hasn't been uploaded to Firebase yet.</span>
-  <button onclick="migrateLocalData()" style="background:#D97706;color:white;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">⬆️ Upload to Firebase now</button>
-  <button onclick="document.getElementById('migrateBanner').style.display='none'" style="background:none;border:none;font-size:18px;cursor:pointer;color:#92400E;margin-left:auto">✕</button>
-</div>
 
 <main class="main">
   <div class="stats" id="stats"></div>
@@ -363,30 +359,6 @@ textarea { resize: vertical; min-height: 72px; }
   </div>
 </main>
 
-<!-- SETUP SCREEN -->
-<div id="setupScreen" style="display:none;position:fixed;inset:0;background:linear-gradient(160deg,#F5F3FF,#EDE9FE,#DDD6FE);z-index:9999;align-items:center;justify-content:center;padding:20px">
-  <div style="background:white;border-radius:20px;padding:32px;max-width:540px;width:100%;box-shadow:0 30px 70px rgba(0,0,0,0.15)">
-    <div style="font-size:32px;margin-bottom:8px">🔥</div>
-    <h2 style="font-size:20px;font-weight:800;color:#1E1B4B;margin-bottom:6px">Connect to Firebase</h2>
-    <p style="font-size:13px;color:#6B7280;margin-bottom:20px;line-height:1.6">
-      Paste your Firebase config below so your dashboard syncs live between all users.
-      <a href="https://console.firebase.google.com/" target="_blank" style="color:#7C3AED;font-weight:600">Open Firebase Console →</a>
-    </p>
-    <div style="background:#F5F3FF;border-radius:10px;padding:14px;margin-bottom:16px;font-size:12px;color:#5B21B6;line-height:1.8">
-      <strong>Steps:</strong><br>
-      1. Go to Firebase Console → Create project (or open existing)<br>
-      2. Click ⚙️ Project Settings → "Your apps" → Add app → Web<br>
-      3. Copy the <code>firebaseConfig</code> object and paste it below<br>
-      4. Go to <strong>Firestore Database</strong> → Create database → Start in <strong>test mode</strong>
-    </div>
-    <div style="margin-bottom:12px">
-      <label style="display:block;font-size:12px;font-weight:600;color:#6B7280;margin-bottom:5px">Firebase Config (JSON)</label>
-      <textarea id="setupInput" rows="8" style="width:100%;padding:10px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:12px;font-family:monospace;outline:none;resize:vertical" placeholder='{"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'></textarea>
-    </div>
-    <div id="setupErr" style="color:#DC2626;font-size:12px;margin-bottom:10px;display:none"></div>
-    <button onclick="applyConfig()" style="background:#7C3AED;color:white;border:none;padding:11px 24px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;width:100%">Connect &amp; Save</button>
-  </div>
-</div>
 
 <!-- MODAL -->
 <div class="overlay" id="modal">
@@ -555,85 +527,78 @@ textarea { resize: vertical; min-height: 72px; }
 
 <div class="toast" id="toast"></div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ═══════════════════════════════════════════════════
-// FIREBASE CONFIG
+// SUPABASE — syncs across all computers automatically
 // ═══════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://tzkouarmbvzoktsjehfn.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6a291YXJtYnZ6b2t0c2plaGZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTU4NjUsImV4cCI6MjA5NjQ3MTg2NX0.rRtm61veXumfj_RkVrs3gpfQGdQv1ufNNf8NuorKrBs';
+
 const SKEY = 'cajee_botes_cfg';
-const FB_KEY = 'cajee_botes_firebase_cfg';
 const S  = { APPT:'appointment', SEEN:'seen', FU:'followup', PAY:'payment', DONE:'completed' };
 const SL = { appointment:'Appointment Scheduled', seen:'Patient Seen', followup:'Follow-up Pending', payment:'Payment Pending', completed:'Completed' };
 
 let db = [], eid = null, vw = 'board', archDays = 90;
 let dragId = null;
-let fsdb = null, DOC = null;
 let editItems = [];
-
-function showSetup() {
-  const ss = document.getElementById('setupScreen');
-  ss.style.display = 'flex';
-}
-function hideSetup() {
-  document.getElementById('setupScreen').style.display = 'none';
-}
-
-function applyConfig() {
-  const raw = document.getElementById('setupInput').value.trim();
-  const errEl = document.getElementById('setupErr');
-  errEl.style.display = 'none';
-  let cfg;
-  try {
-    // Accept both raw object and JSON
-    cfg = JSON.parse(raw.replace(/^[^{]*/, '').replace(/[^}]*$/, ''));
-    if (!cfg.apiKey || !cfg.projectId) throw new Error('Missing required fields');
-  } catch(e) {
-    errEl.textContent = 'Invalid config — paste the full firebaseConfig object (including the curly braces).';
-    errEl.style.display = 'block';
-    return;
-  }
-  localStorage.setItem(FB_KEY, JSON.stringify(cfg));
-  location.reload();
-}
-
-function initFirebase(cfg) {
-  if (!firebase.apps.length) firebase.initializeApp(cfg);
-  fsdb = firebase.firestore();
-  DOC  = fsdb.collection('clinic').doc('patients');
-}
+let sb = null;
 
 function load() {
   const cfg = JSON.parse(localStorage.getItem(SKEY) || '{}');
   archDays = cfg.archDays || 90;
   document.getElementById('archSel').value = archDays;
 
-  const fbCfg = JSON.parse(localStorage.getItem(FB_KEY) || 'null');
-  if (!fbCfg) { showSetup(); return; }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-  initFirebase(fbCfg);
+  // Real-time: any change on any computer triggers a refresh everywhere
+  sb.channel('patients-sync')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'patients' }, fetchAll)
+    .subscribe();
 
-  // Real-time listener — fires on every change from any user
-  let firstSnapshot = true;
-  DOC.onSnapshot(snap => {
-    if (snap.exists) {
-      db = snap.data().patients || [];
-    } else {
-      db = [];
-      if (db.length === 0) seedData();
-    }
-    if (firstSnapshot) { firstSnapshot = false; checkLocalMigration(); }
-    renderAll();
-  }, err => {
-    console.error('Firestore error:', err);
-    toast('Sync error — check Firebase setup', 'err');
-  });
+  fetchAll();
 }
 
-function save_db() {
-  if (!DOC) return;
-  DOC.set({ patients: db }).catch(e => toast('Save failed: ' + e.message, 'err'));
+function fetchAll() {
+  sb.from('patients').select('*').order('created', { ascending: false })
+    .then(({ data, error }) => {
+      if (error) { toast('Sync error — check connection', 'err'); return; }
+      if (!data.length) seedData();
+      else { db = data.map(normalizeRow); renderAll(); }
+    });
+}
+
+// Map DB row → app object (DB uses done_date, app uses doneDate)
+function normalizeRow(row) {
+  return { ...row, doneDate: row.done_date, notes: row.notes || [], items: row.items || [] };
+}
+
+// Map app object → DB row
+function toRow(p) {
+  return {
+    id: p.id, name: p.name||'', dob: p.dob||'', phone: p.phone||'', email: p.email||'',
+    address: p.address||'', svc: p.svc||'', adate: p.adate||'', atime: p.atime||'',
+    ref: p.ref||'', fudate: p.fudate||'', futype: p.futype||'', fumsg: p.fumsg||'',
+    paytype: p.paytype||'', medaid: p.medaid||'', medaid_number: p.medaid_number||'',
+    icd: p.icd||'', claimstatus: p.claimstatus||'', claimno: p.claimno||'',
+    amount: p.amount||'', payreceived: p.payreceived||'',
+    status: p.status, done_date: p.doneDate||null,
+    notes: p.notes||[], items: p.items||[],
+    created: p.created, upd: p.upd,
+  };
+}
+
+function dbErr(e) { if (e) toast('Save failed: ' + e.message, 'err'); }
+
+// ── Export backup (still useful for records) ─────────────────────────────────
+function exportData() {
+  const blob = new Blob([JSON.stringify({ patients: db, exported: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `cajee-botes-backup-${today()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Backup downloaded', 'ok');
 }
 
 function saveArch() {
@@ -856,15 +821,20 @@ function mv(id, ns) {
   if (!p || p.status===ns) return;
   p.status = ns;
   if (ns===S.DONE) p.doneDate = today();
-  save_db(); renderAll();
+  renderAll();
   toast(`${p.name} → ${SL[ns]}`, 'ok');
+  sb.from('patients').update({ status: ns, done_date: ns===S.DONE ? today() : (p.doneDate||null) }).eq('id', id)
+    .then(({ error }) => dbErr(error));
 }
 
 function confirmDel() {
   if (confirm('Delete this patient? This cannot be undone.')) {
-    db = db.filter(p => p.id!==eid);
-    save_db(); closeModal(); renderAll();
+    const delId = eid;
+    db = db.filter(p => p.id!==delId);
+    closeModal(); renderAll();
     toast('Patient removed', 'ok');
+    sb.from('patients').delete().eq('id', delId)
+      .then(({ error }) => dbErr(error));
   }
 }
 
@@ -978,7 +948,10 @@ function buildNotes(p) {
 function delNote(pid, idx) {
   const p = db.find(x => x.id===pid);
   if (!p||!p.notes) return;
-  p.notes.splice(idx,1); save_db(); buildNotes(p); toast('Note removed','ok');
+  p.notes.splice(idx,1);
+  buildNotes(p); toast('Note removed','ok');
+  sb.from('patients').update({ notes: p.notes }).eq('id', pid)
+    .then(({ error }) => dbErr(error));
 }
 
 function toggleMedAidField() {
@@ -1027,12 +1000,18 @@ function save() {
     Object.assign(p, fields);
     p.upd = new Date().toISOString();
     if (noteText) p.notes = [...noteEntry, ...(p.notes||[])];
+    closeModal(); renderAll();
     toast('Patient updated','ok');
+    sb.from('patients').update(toRow(p)).eq('id', p.id)
+      .then(({ error }) => dbErr(error));
   } else {
-    db.unshift({ id:uid(), ...fields, status:S.APPT, notes:noteEntry, doneDate:null, created:new Date().toISOString(), upd:new Date().toISOString() });
+    const np = { id:uid(), ...fields, status:S.APPT, notes:noteEntry, doneDate:null, created:new Date().toISOString(), upd:new Date().toISOString() };
+    db.unshift(np);
+    closeModal(); renderAll();
     toast(`${name} added`,'ok');
+    sb.from('patients').insert(toRow(np))
+      .then(({ error }) => dbErr(error));
   }
-  save_db(); closeModal(); renderAll();
 }
 
 // ═══════════════════════════════════════════════════
@@ -1107,36 +1086,10 @@ function seedData() {
       status:S.DONE, notes:[{date:'2 weeks ago',text:'Above-knee prosthesis. Patient very happy. Gait training recommended.'}],
       doneDate:d(-3), created:new Date().toISOString(), upd:new Date().toISOString() },
   ];
-  save_db();
+  sb.from('patients').insert(db.map(toRow))
+    .then(({ error }) => { if (error) console.error('Seed failed:', error); else fetchAll(); });
 }
 
-// ═══════════════════════════════════════════════════
-// MIGRATION
-// ═══════════════════════════════════════════════════
-function checkLocalMigration() {
-  const local = localStorage.getItem('cajee_botes_v3') || localStorage.getItem('cajee_botes_v2');
-  if (!local) return;
-  const localDb = JSON.parse(local);
-  if (!localDb || localDb.length === 0) return;
-  // Only show banner if Firestore is empty
-  DOC.get().then(snap => {
-    const cloudCount = snap.exists ? (snap.data().patients || []).length : 0;
-    if (cloudCount === 0 && localDb.length > 0) {
-      document.getElementById('migrateBanner').style.display = 'flex';
-    }
-  });
-}
-
-function migrateLocalData() {
-  const local = localStorage.getItem('cajee_botes_v3') || localStorage.getItem('cajee_botes_v2');
-  if (!local) return;
-  const localDb = JSON.parse(local);
-  if (!localDb || localDb.length === 0) return;
-  db = localDb;
-  save_db();
-  document.getElementById('migrateBanner').style.display = 'none';
-  toast(`${localDb.length} patients uploaded to Firebase ✓`, 'ok');
-}
 
 // ═══════════════════════════════════════════════════
 // ITEMS / PRODUCTS
@@ -1179,7 +1132,7 @@ function updateItemsTotal() {
 // ═══════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════
-load(); // sets up Firestore listener → renderAll() called on first snapshot
+load();
 tick(); setInterval(tick, 30000);
 </script>
 </body>
